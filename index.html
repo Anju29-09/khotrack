@@ -6,10 +6,10 @@
 <meta name="theme-color" content="#0F172A">
 <title>KhoTrack</title>
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=26">
-<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png?v=26">
-<link rel="apple-touch-icon" href="icon-192.png?v=26">
-<link rel="stylesheet" href="styles.css?v=26">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=27">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png?v=27">
+<link rel="apple-touch-icon" href="icon-192.png?v=27">
+<link rel="stylesheet" href="styles.css?v=27">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
      bottom the way "from Meta" does. -->
 <div id="splash">
   <div class="splash-main">
-    <img src="icon-512.png?v=26" alt="" width="128" height="128">
+    <img src="icon-512.png?v=27" alt="" width="128" height="128">
     <div class="splash-name">KhoTrack</div>
     <div class="splash-tag">Kho Kho Scoring</div>
   </div>
@@ -418,6 +418,17 @@
   </div>
 </dialog>
 
+<dialog id="dlgUpdate">
+  <h2>Update available</h2>
+  <p>A newer version of KhoTrack is ready.</p>
+  <p class="muted">Updating takes a second. Your teams, matches and score sheets
+     are kept — nothing is reinstalled and nothing is lost.</p>
+  <div class="actions">
+    <button class="grey" id="updLater">Later</button>
+    <button class="green" id="updNow">Update now</button>
+  </div>
+</dialog>
+
 <dialog id="dlgChoice">
   <h2 id="chTitle">Choose</h2>
   <p id="chBody"></p>
@@ -426,22 +437,73 @@
 
 <div id="toast"></div>
 
-<script src="share.js?v=26"></script>
-<script src="app.js?v=26"></script>
-<script src="scoring.js?v=26"></script>
-<script src="detail.js?v=26"></script>
+<script src="share.js?v=27"></script>
+<script src="app.js?v=27"></script>
+<script src="scoring.js?v=27"></script>
+<script src="detail.js?v=27"></script>
 <script>
   // service worker gives the offline cache and makes the app installable
+  /* ----------------------------------------------------------
+     UPDATES
+
+     A new version is published simply by changing sw.js. The browser installs
+     it beside the running one, where it waits. We surface that as a prompt on
+     the home screen rather than swapping it in silently, so an update can never
+     reload the page in the middle of scoring a match.
+
+     Accepting tells the waiting worker to take over; controllerchange then
+     fires and we reload once into the new version. Stored data is untouched —
+     this replaces the app's files, not the browser storage holding the matches.
+     ---------------------------------------------------------- */
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+
+    let waitingWorker = null;
+    let declined = false;          // "Later" stays quiet for the rest of the visit
+
+    const offerUpdate = worker => {
+      if (!worker || declined) return;
+      waitingWorker = worker;
+
+      const dlg = document.getElementById('dlgUpdate');
+      if (!dlg || dlg.open) return;
+      dlg.showModal();
+    };
+
+    document.getElementById('updLater').onclick = () => {
+      declined = true;
+      document.getElementById('dlgUpdate').close();
+    };
+
+    document.getElementById('updNow').onclick = () => {
+      document.getElementById('dlgUpdate').close();
+      if (waitingWorker) waitingWorker.postMessage('SKIP_WAITING');
+    };
+
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js')
-        .then(reg => reg.update())
-        .catch(e => console.warn('sw', e));
+      navigator.serviceWorker.register('sw.js').then(reg => {
+
+        // an update may already be sitting there from a previous visit
+        if (reg.waiting && navigator.serviceWorker.controller) offerUpdate(reg.waiting);
+
+        reg.addEventListener('updatefound', () => {
+          const fresh = reg.installing;
+          if (!fresh) return;
+
+          fresh.addEventListener('statechange', () => {
+            // a controller already running means this is an update, not a first install
+            if (fresh.state === 'installed' && navigator.serviceWorker.controller) {
+              offerUpdate(fresh);
+            }
+          });
+        });
+
+        reg.update();                                   // check on every open
+        setInterval(() => reg.update(), 60 * 60 * 1000); // and hourly if left open
+
+      }).catch(e => console.warn('sw', e));
     });
 
-    // When a new worker takes over, the page is still running the old scripts.
-    // Reload once so a stale copy can never be left on screen. The flag stops
-    // the reload from looping.
+    // the new worker has taken over, so load its files
     let reloading = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       if (reloading) return;
@@ -478,7 +540,7 @@
 
   // so it is obvious at a glance whether the browser is running the newest files
   const stamp = document.getElementById('buildStamp');
-  if (stamp) stamp.textContent = ' — keys build v26';
+  if (stamp) stamp.textContent = ' — keys build v27';
 
   renderHome();
 
