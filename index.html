@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0F172A">
+<title>KhoTrack</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=26">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png?v=26">
+<link rel="apple-touch-icon" href="icon-192.png?v=26">
+<link rel="stylesheet" href="styles.css?v=26">
+</head>
+<body>
+
+<!-- ============ SPLASH ============
+     Shown while the app boots, then fades out. The brand lockup sits at the
+     bottom the way "from Meta" does. -->
+<div id="splash">
+  <div class="splash-main">
+    <img src="icon-512.png?v=26" alt="" width="128" height="128">
+    <div class="splash-name">KhoTrack</div>
+    <div class="splash-tag">Kho Kho Scoring</div>
+  </div>
+
+  <div class="splash-brand">AIngle</div>
+</div>
+
+<!-- ============ HOME ============ -->
+<section id="s-home" class="screen active">
+  <h1>Kho Kho</h1>
+  <p class="sub">Tournament Management System</p>
+
+  <div class="menu">
+    <button id="resumeBtn" class="amber" style="display:none">⏱ Resume Live Match</button>
+    <button data-go="register">🏃 Register Team</button>
+    <button data-go="teams">👥 Registered Teams</button>
+    <button id="startMatchBtn">🔥 Start Match</button>
+    <button data-go="sheets">📄 Score Sheets</button>
+  </div>
+
+  <p class="muted" id="installHint" style="display:none">
+    Tip: use your browser's <b>Install</b> button to keep KhoTrack on your desktop or home screen.
+  </p>
+</section>
+
+<!-- ============ TEAM REGISTRATION ============ -->
+<section id="s-register" class="screen">
+  <button class="grey" data-back>← Back</button>
+  <h1>🏃 Team Registration</h1>
+
+  <div class="row" style="margin-bottom:18px">
+    <button id="inviteBtn" class="green">📨 Invite Team</button>
+    <button id="pasteBtn">📥 Paste Reply</button>
+  </div>
+
+  <div class="card">
+    <h2>Team Details</h2>
+
+    <div class="field"><input type="text" id="regTeam" placeholder="Enter Team Name"></div>
+    <div class="field"><input type="text" id="regCoach" placeholder="Enter Coach Name"></div>
+
+    <div class="field">
+      <label class="cap">Type</label>
+      <label class="opt"><input type="radio" name="regType" value="Men">Men</label>
+      <label class="opt"><input type="radio" name="regType" value="Women">Women</label>
+    </div>
+
+    <div class="field">
+      <label class="cap">Category</label>
+      <label class="opt"><input type="radio" name="regCat" value="U14">U14</label>
+      <label class="opt"><input type="radio" name="regCat" value="U18">U18</label>
+      <label class="opt"><input type="radio" name="regCat" value="Open">Open</label>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Players</h2>
+    <p class="muted" style="margin-top:-6px">At least 9. Leave the rest blank.</p>
+    <div id="playerInputs"></div>
+  </div>
+
+  <button id="saveTeamBtn" class="green big">SAVE TEAM</button>
+</section>
+
+<!-- ============ REGISTERED TEAMS ============ -->
+<section id="s-teams" class="screen">
+  <button class="grey" data-back>← Back</button>
+  <h1>📋 Registered Teams</h1>
+
+  <input type="search" id="teamSearch" placeholder="Search team or coach">
+  <p class="muted" id="teamSearchInfo" style="display:none"></p>
+
+  <div id="teamGroups"></div>
+</section>
+
+<!-- ============ TEAM DETAILS ============ -->
+<section id="s-teamdetail" class="screen">
+  <button class="grey" data-back>← Back</button>
+  <h1 id="tdName">Team</h1>
+  <p class="sub" id="tdMeta"></p>
+  <div class="card" id="tdPlayers"></div>
+</section>
+
+<!-- ============ MATCH SELECTION ============ -->
+<section id="s-select" class="screen">
+  <button class="grey" data-back>← Back</button>
+  <h1>Match Selection</h1>
+  <p class="sub">Choose teams to start match</p>
+
+  <div class="card">
+    <h2>Match Type</h2>
+    <div class="field">
+      <label class="opt"><input type="radio" name="selType" value="Men" checked>Men</label>
+      <label class="opt"><input type="radio" name="selType" value="Women">Women</label>
+    </div>
+    <h2>Category</h2>
+    <div class="field">
+      <label class="opt"><input type="radio" name="selCat" value="U14">U14</label>
+      <label class="opt"><input type="radio" name="selCat" value="U18">U18</label>
+      <label class="opt"><input type="radio" name="selCat" value="Open" checked>Open</label>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Available Teams</h2>
+    <input type="search" id="selSearch" placeholder="Search team or coach">
+    <p class="muted" id="selInfo" style="margin-bottom:4px">Select 2 teams</p>
+    <div id="selList"></div>
+  </div>
+
+  <button id="toTossBtn" class="big">Start Match</button>
+</section>
+
+<!-- ============ TOSS ============ -->
+<section id="s-toss" class="screen">
+  <button class="grey" data-back>← Back</button>
+  <h1>Toss Selection</h1>
+  <p class="sub">Configure match settings</p>
+
+  <div class="card">
+    <div class="field">
+      <label class="cap">Match Date</label>
+      <input type="date" id="tossDate">
+    </div>
+
+    <div class="field">
+      <label class="cap">Selected Teams</label>
+      <div id="tossTeams" class="muted"></div>
+    </div>
+
+    <div class="field">
+      <label class="cap">Attacking Team</label>
+      <div id="tossAttack"></div>
+    </div>
+
+    <div class="field">
+      <label class="cap">Attack Size</label>
+      <label class="opt"><input type="radio" name="attackSize" value="7">7 Players</label>
+      <label class="opt"><input type="radio" name="attackSize" value="9" checked>9 Players</label>
+    </div>
+
+    <div class="field">
+      <label class="cap">Half Time</label>
+      <label class="opt"><input type="radio" name="halfTime" value="5" checked>5 Minutes</label>
+      <label class="opt"><input type="radio" name="halfTime" value="7">7 Minutes</label>
+      <label class="opt"><input type="radio" name="halfTime" value="9">9 Minutes</label>
+    </div>
+
+    <div class="field">
+      <label class="cap">Points Per Wicket</label>
+      <label class="opt"><input type="radio" name="wicketPts" value="1" checked>1 Point</label>
+      <label class="opt"><input type="radio" name="wicketPts" value="2">2 Points</label>
+    </div>
+
+    <div class="field">
+      <label class="cap">Dream Run (Defending Team)</label>
+      <p class="muted" style="margin:0 0 8px">A batch that stays on the field this long starts earning bonus points.</p>
+      <label class="opt"><input type="radio" name="dreamRun" value="0" checked>No</label>
+      <label class="opt"><input type="radio" name="dreamRun" value="2">2 min</label>
+      <label class="opt"><input type="radio" name="dreamRun" value="3">3 min</label>
+      <label class="opt"><input type="radio" name="dreamRun" value="4">4 min</label>
+    </div>
+
+    <div class="field" id="bonusField" style="display:none">
+      <label class="cap">Bonus Point Every</label>
+      <label class="opt"><input type="radio" name="bonusEvery" value="30" checked>30 sec</label>
+      <label class="opt"><input type="radio" name="bonusEvery" value="60">1 min</label>
+      <label class="opt"><input type="radio" name="bonusEvery" value="90">1:30</label>
+      <label class="opt"><input type="radio" name="bonusEvery" value="120">2 min</label>
+    </div>
+  </div>
+
+  <button id="toPlayersBtn" class="green big">Next</button>
+</section>
+
+<!-- ============ PLAYER SELECTION ============ -->
+<section id="s-players" class="screen">
+  <button class="grey" data-back>← Back</button>
+  <h1>Permanent Subs</h1>
+  <p class="sub">Optional — up to 3 per team. They sit out the whole match.</p>
+
+  <div class="row">
+    <div class="card">
+      <h2 id="ps1Title">Team 1</h2>
+      <div id="ps1List"></div>
+    </div>
+    <div class="card">
+      <h2 id="ps2Title">Team 2</h2>
+      <div id="ps2List"></div>
+    </div>
+  </div>
+
+  <button id="toScoringBtn" class="green big">Start Scoring</button>
+</section>
+
+<!-- ============ SCORING ============ -->
+<section id="s-scoring" class="screen">
+  <div class="spread">
+    <button class="red" id="scoringBackBtn">← Back</button>
+    <b id="inningText">1st Inning - 1st Half</b>
+  </div>
+
+  <p class="muted" id="permText" style="margin:8px 0 0"></p>
+
+  <div class="timer" id="timerText">05:00</div>
+  <p class="muted" id="sdTarget" style="text-align:center;display:none"></p>
+
+  <div class="row" style="margin-top:12px">
+    <button id="startBtn" class="green">Start</button>
+    <button id="lapBtn">Lap</button>
+    <button id="undoBtn" class="orange">Undo</button>
+    <button id="resetHalfBtn" class="grey">Reset Half</button>
+    <button id="skipBtn" class="purple" style="display:none">Skip</button>
+    <button id="finishBtn" class="red" style="display:none">Finish</button>
+  </div>
+
+  <div class="score">
+    <div><div id="sc1Name">Team 1</div><div class="n" id="sc1">0</div></div>
+    <div><div id="sc2Name">Team 2</div><div class="n" id="sc2">0</div></div>
+  </div>
+
+  <div class="card">
+    <div class="spread" style="margin-bottom:10px">
+      <b style="color:var(--blue)" id="attLabel">Attacking</b>
+      <b style="color:var(--cyan)">Game Data</b>
+      <b style="color:var(--purple)" id="defLabel">Defending</b>
+    </div>
+
+    <div class="field3">
+      <div class="jerseys" id="attGrid"></div>
+      <div id="gameData"></div>
+      <div class="jerseys" id="defGrid"></div>
+    </div>
+  </div>
+
+  <!-- keyboard help, shown only where there is a keyboard -->
+  <div class="deskonly">
+    <p class="muted" id="keyHelp">
+      <b>Space</b> start / pause / resume · <b>L</b> lap ·
+      <b>U</b> undo · <b>D</b> delete batch · <b>H</b> reset half · <b>S</b> skip · <b>F</b> finish · <b>Esc</b> clear<br>
+      <b>Jerseys.</b> Type the number — <b>2</b> is instant, <b>1</b> waits a moment
+      in case you mean <b>12</b>.
+      Batch running: first entry is the <b>attacker</b>, second is the <b>defender</b>,
+      then <b>1</b> Running · <b>2</b> Pole Dive · <b>3</b> Sky Dive · <b>4</b> Self Out.
+      Type <b>00</b> for no jersey (“-”).
+      <span id="buildStamp" style="opacity:.5"></span>
+    </p>
+  </div>
+</section>
+
+<!-- ============ SCORE SHEETS ============ -->
+<section id="s-sheets" class="screen">
+  <button class="grey" data-back>← Back</button>
+  <h1>Match Score Sheet</h1>
+  <p class="sub" id="sheetTotal">Total Matches : 0</p>
+
+  <input type="search" id="sheetSearch" placeholder="Search team, date or winner">
+  <div id="sheetList" style="margin-top:12px"></div>
+</section>
+
+<!-- ============ MATCH DETAIL ============ -->
+<section id="s-detail" class="screen">
+  <button class="grey noprint" data-back>← Back</button>
+
+  <div class="card" style="text-align:center">
+    <span class="badge" id="dtBadge">Open</span>
+    <h1 id="dtTitle" style="margin:10px 0 4px">Team A vs Team B</h1>
+    <p class="muted" id="dtDate"></p>
+    <h2 id="dtWinner" style="color:var(--green)"></h2>
+
+    <div class="score">
+      <div><div id="dt1Name"></div><div class="n" id="dt1"></div></div>
+      <div><div id="dt2Name"></div><div class="n" id="dt2"></div></div>
+    </div>
+
+    <p class="muted" id="dtRules"></p>
+
+    <div class="row noprint" style="margin-top:14px">
+      <button id="printBtn">🖨 Print / Save PDF</button>
+      <button id="csvBtn" class="green">⬇ CSV</button>
+      <button id="shareBtn" class="purple">↗ Share</button>
+      <button id="editBtn" class="amber">✏️ Edit</button>
+    </div>
+
+    <!-- correction panel, only while editing -->
+    <div id="editPanel" class="noprint" style="display:none;text-align:left;margin-top:16px">
+
+      <h2 style="margin-bottom:10px">Edit Match</h2>
+      <p class="muted" style="margin-top:0">
+        Tap any row in the table below to correct or delete that wicket.
+      </p>
+
+      <div class="field">
+        <label class="cap">Date</label>
+        <input type="text" id="edDate" placeholder="e.g. 23 / 9 / 2026">
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label class="cap" id="edName1">Team 1</label>
+          <input type="text" id="edScore1" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label class="cap" id="edName2">Team 2</label>
+          <input type="text" id="edScore2" inputmode="numeric">
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="cap">Winner</label>
+        <select id="edWinner"></select>
+      </div>
+
+      <div class="row">
+        <button id="edRecalcBtn" class="grey">↻ Recalculate scores from sheet</button>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <button id="edSaveBtn" class="green">Save Changes</button>
+        <button id="edCancelBtn" class="red">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Match Data</h2>
+    <div style="overflow-x:auto"><table class="sheet" id="dtTable"></table></div>
+  </div>
+</section>
+
+<!-- ============ DIALOGS ============ -->
+<dialog id="dlgAttack">
+  <h2>Attack Type</h2>
+  <div class="attack">
+    <button data-type="Running">🏃<br>Running</button>
+    <button data-type="Pole Dive" class="purple">🤸<br>Pole Dive</button>
+    <button data-type="Sky Dive" class="green">🕊<br>Sky Dive</button>
+    <button data-type="Self Out" class="red">🚫<br>Self Out</button>
+  </div>
+  <div class="actions"><button class="grey" id="dlgAttackCancel">Cancel</button></div>
+</dialog>
+
+<dialog id="dlgConfirm">
+  <h2 id="cfTitle">Confirm</h2>
+  <p id="cfBody"></p>
+  <div class="actions">
+    <button class="grey" id="cfNo">Cancel</button>
+    <button class="grey" id="cfAlt" style="display:none"></button>
+    <button class="red" id="cfYes">OK</button>
+  </div>
+</dialog>
+
+<dialog id="dlgPaste">
+  <h2>Paste Reply</h2>
+  <p class="muted">Copy the team's WhatsApp message, then paste it here.</p>
+  <textarea id="pasteText" placeholder="Paste the team's reply here"></textarea>
+  <div class="actions">
+    <button class="grey" id="pasteCancel">Cancel</button>
+    <button class="green" id="pasteOk">Fill Form</button>
+  </div>
+</dialog>
+
+<dialog id="dlgRow">
+  <h2>Edit Wicket</h2>
+  <p class="muted" id="rowWhere" style="margin-top:0"></p>
+
+  <div class="field">
+    <label class="cap">Defender jersey</label>
+    <input type="text" id="rowDef" inputmode="numeric">
+  </div>
+
+  <div class="field">
+    <label class="cap">Attacker jersey <span class="muted">(blank = self out)</span></label>
+    <input type="text" id="rowAtt" inputmode="numeric">
+  </div>
+
+  <div class="field">
+    <label class="cap">Time <span class="muted">(mm:ss, or "Not Out")</span></label>
+    <input type="text" id="rowTime" placeholder="00:42">
+  </div>
+
+  <div class="field">
+    <label class="cap">Type</label>
+    <select id="rowType">
+      <option value="Running">Running</option>
+      <option value="Pole Dive">Pole Dive</option>
+      <option value="Sky Dive">Sky Dive</option>
+      <option value="Self Out">Self Out</option>
+      <option value="">(none / not out)</option>
+    </select>
+  </div>
+
+  <div class="actions">
+    <button class="red" id="rowDeleteBtn">Delete</button>
+    <button class="grey" id="rowCancelBtn">Cancel</button>
+    <button class="green" id="rowOkBtn">Apply</button>
+  </div>
+</dialog>
+
+<dialog id="dlgChoice">
+  <h2 id="chTitle">Choose</h2>
+  <p id="chBody"></p>
+  <div class="actions" id="chActions"></div>
+</dialog>
+
+<div id="toast"></div>
+
+<script src="share.js?v=26"></script>
+<script src="app.js?v=26"></script>
+<script src="scoring.js?v=26"></script>
+<script src="detail.js?v=26"></script>
+<script>
+  // service worker gives the offline cache and makes the app installable
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => reg.update())
+        .catch(e => console.warn('sw', e));
+    });
+
+    // When a new worker takes over, the page is still running the old scripts.
+    // Reload once so a stale copy can never be left on screen. The flag stops
+    // the reload from looping.
+    let reloading = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (reloading) return;
+      reloading = true;
+      location.reload();
+    });
+  }
+
+  // Chrome/Edge fire this when the app can be installed to the desktop or home screen
+  let installPrompt = null;
+
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    installPrompt = e;
+
+    const hint = document.getElementById('installHint');
+    hint.style.display = '';
+    hint.innerHTML = '';
+
+    const b = document.createElement('button');
+    b.className = 'green';
+    b.textContent = '⬇ Install KhoTrack on this device';
+    b.onclick = async () => {
+      hint.style.display = 'none';
+      installPrompt.prompt();
+      installPrompt = null;
+    };
+    hint.appendChild(b);
+  });
+
+  window.addEventListener('appinstalled', () => {
+    document.getElementById('installHint').style.display = 'none';
+  });
+
+  // so it is obvious at a glance whether the browser is running the newest files
+  const stamp = document.getElementById('buildStamp');
+  if (stamp) stamp.textContent = ' — keys build v26';
+
+  renderHome();
+
+  // hold the splash briefly, then fade it out and take it out of the layout
+  (function () {
+    const splash = document.getElementById('splash');
+    if (!splash) return;
+
+    const hide = () => {
+      splash.classList.add('gone');
+      setTimeout(() => splash.remove(), 450);
+    };
+
+    setTimeout(hide, 1500);
+    splash.addEventListener('click', hide);   // tapping skips the wait
+  })();
+</script>
+</body>
+</html>
