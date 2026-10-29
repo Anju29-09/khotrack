@@ -395,7 +395,7 @@ function renderTeams() {
       card.className = 'card';
       card.innerHTML = `<h2>${title}</h2>`;
 
-      ['U14', 'U18', 'Open'].forEach(cat => {
+      ['U14', 'U17', 'U18', 'U19', 'Open'].forEach(cat => {
         const list = sideTeams.filter(t => (t.category || 'Open') === cat).filter(match);
         if (q && !list.length) return; // hide empty sections while searching
 

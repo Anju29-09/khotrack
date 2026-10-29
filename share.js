@@ -13,7 +13,7 @@ const TeamShare = (() => {
   function buildTemplate() {
     let s = HEADER + '\n';
     s += 'Fill in the blanks and send this message back.\n\n';
-    s += 'Team: \nCoach: \nType (Men/Women): \nCategory (U14/U18/Open): \n\n';
+    s += 'Team: \nCoach: \nType (Men/Women): \nCategory (U14/U17/U18/U19/Open): \n\n';
     s += 'Players:\n';
     for (let i = 1; i <= MAX_PLAYERS; i++) s += i + '. \n';
     s += '\nAt least 9 players. Leave the extra numbers blank.';
@@ -25,7 +25,7 @@ const TeamShare = (() => {
     s += 'Team: ' + team.teamName + '\n';
     s += 'Coach: ' + team.coachName + '\n';
     s += 'Type (Men/Women): ' + team.teamType + '\n';
-    s += 'Category (U14/U18/Open): ' + team.category + '\n\n';
+    s += 'Category (U14/U17/U18/U19/Open): ' + team.category + '\n\n';
     s += 'Players:\n';
     team.players.forEach((p, i) => { s += (i + 1) + '. ' + p + '\n'; });
     return s;
@@ -71,7 +71,9 @@ const TeamShare = (() => {
   function normaliseCategory(v) {
     const l = v.toLowerCase().replace(/\s/g, '');
     if (l.includes('u14') || l.includes('under14')) return 'U14';
+    if (l.includes('u17') || l.includes('under17')) return 'U17';
     if (l.includes('u18') || l.includes('under18')) return 'U18';
+    if (l.includes('u19') || l.includes('under19')) return 'U19';
     if (l.includes('open')) return 'Open';
     return '';
   }

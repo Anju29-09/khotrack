@@ -433,13 +433,16 @@ const Scoring = (() => {
     }
 
     // giving a wicket
-    if (!M.batches[M.currentBatchIndex].includes(num)) {
-      toast('Jersey ' + num + ' is not in this batch ('
-        + M.batches[M.currentBatchIndex].join(', ') + ')', 3500);
-      return;
+    // '-' records a wicket without naming the defender, so it is not held to the
+    // current batch and may be used as often as the scorer needs
+    if (num !== '-') {
+      if (!M.batches[M.currentBatchIndex].includes(num)) {
+        toast('Jersey ' + num + ' is not in this batch ('
+          + M.batches[M.currentBatchIndex].join(', ') + ')', 3500);
+        return;
+      }
+      if (alreadyOut(num)) { toast('Player already out'); return; }
     }
-    if (num === '-') { toast("Cannot give a wicket to '-'"); return; }
-    if (alreadyOut(num)) { toast('Player already out'); return; }
     if (!running) { toast('Start the timer first'); return; }
 
     // Sudden death is decided on time, so a wicket here can never be left at 00:00.
@@ -506,13 +509,8 @@ const Scoring = (() => {
       b.onclick = () => {
         const type = b.dataset.type;
 
-        // every attack type except a self out needs an attacker
-        if (type !== 'Self Out' && (!selAttacker || selAttacker === '-')) {
-          toast('Select the attacker first');
-          dlg.close(); cleanup(); cancelPending();
-          return;
-        }
-
+        // '-' is a valid attacker on any wicket type: the wicket still counts, it
+        // is simply recorded with nobody credited for it
         dlg.close(); cleanup();
         processWicket(type);
       };
@@ -536,11 +534,13 @@ const Scoring = (() => {
   function processWicket(type) {
     const bi = M.currentBatchIndex;
     if (bi >= M.batchEvents.length || !selDefender) { cancelPending(); return; }
-    if (alreadyOut(selDefender)) { toast('Player already out'); cancelPending(); return; }
+    if (selDefender !== '-' && alreadyOut(selDefender)) {
+      toast('Player already out'); cancelPending(); return;
+    }
 
-    const event = type === 'Self Out'
-      ? selDefender + '-by--'
-      : selDefender + '-by-' + selAttacker;
+    // a self out, or an attacker left as '-', both credit nobody
+    const attacker = (type === 'Self Out' || !selAttacker) ? '-' : selAttacker;
+    const event = selDefender + '-by-' + attacker;
 
     const lap = M.currentLapTime;
 

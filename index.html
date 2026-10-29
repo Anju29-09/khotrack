@@ -6,10 +6,10 @@
 <meta name="theme-color" content="#0F172A">
 <title>KhoTrack</title>
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=27">
-<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png?v=27">
-<link rel="apple-touch-icon" href="icon-192.png?v=27">
-<link rel="stylesheet" href="styles.css?v=27">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=28">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png?v=28">
+<link rel="apple-touch-icon" href="icon-192.png?v=28">
+<link rel="stylesheet" href="styles.css?v=28">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
      bottom the way "from Meta" does. -->
 <div id="splash">
   <div class="splash-main">
-    <img src="icon-512.png?v=27" alt="" width="128" height="128">
+    <img src="icon-512.png?v=28" alt="" width="128" height="128">
     <div class="splash-name">KhoTrack</div>
     <div class="splash-tag">Kho Kho Scoring</div>
   </div>
@@ -69,7 +69,9 @@
     <div class="field">
       <label class="cap">Category</label>
       <label class="opt"><input type="radio" name="regCat" value="U14">U14</label>
+      <label class="opt"><input type="radio" name="regCat" value="U17">U17</label>
       <label class="opt"><input type="radio" name="regCat" value="U18">U18</label>
+      <label class="opt"><input type="radio" name="regCat" value="U19">U19</label>
       <label class="opt"><input type="radio" name="regCat" value="Open">Open</label>
     </div>
   </div>
@@ -117,7 +119,9 @@
     <h2>Category</h2>
     <div class="field">
       <label class="opt"><input type="radio" name="selCat" value="U14">U14</label>
+      <label class="opt"><input type="radio" name="selCat" value="U17">U17</label>
       <label class="opt"><input type="radio" name="selCat" value="U18">U18</label>
+      <label class="opt"><input type="radio" name="selCat" value="U19">U19</label>
       <label class="opt"><input type="radio" name="selCat" value="Open" checked>Open</label>
     </div>
   </div>
@@ -437,10 +441,10 @@
 
 <div id="toast"></div>
 
-<script src="share.js?v=27"></script>
-<script src="app.js?v=27"></script>
-<script src="scoring.js?v=27"></script>
-<script src="detail.js?v=27"></script>
+<script src="share.js?v=28"></script>
+<script src="app.js?v=28"></script>
+<script src="scoring.js?v=28"></script>
+<script src="detail.js?v=28"></script>
 <script>
   // service worker gives the offline cache and makes the app installable
   /* ----------------------------------------------------------
@@ -540,7 +544,7 @@
 
   // so it is obvious at a glance whether the browser is running the newest files
   const stamp = document.getElementById('buildStamp');
-  if (stamp) stamp.textContent = ' — keys build v27';
+  if (stamp) stamp.textContent = ' — keys build v28';
 
   renderHome();
 

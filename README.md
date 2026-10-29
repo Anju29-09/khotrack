@@ -50,7 +50,7 @@ python -m http.server 8777
 
 then open <http://127.0.0.1:8777/index.html>.
 
-After changing any file, bump the version in `sw.js` (`khotrack-v26` → `v27`) or the
+After changing any file, bump the version in `sw.js` (`khotrack-v27` → `v28`) or the
 old cached copy keeps being served.
 
 | File | What it is |

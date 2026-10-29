@@ -7,6 +7,11 @@
  * there is nothing to download and it works offline on every platform.
  */
 
+/** Badge colour per age category; anything unrecognised falls back to the Open green. */
+const CAT_COLOURS = {
+  U14: '#2563EB', U17: '#0EA5E9', U18: '#7C3AED', U19: '#DB2777', OPEN: '#059669'
+};
+
 let detailMatch = null;
 
 /** Index of the shown match inside the stored list; null means it cannot be edited. */
@@ -45,6 +50,7 @@ const halfBonusOf = (m, i) =>
 /** "5. Amit Deshmukh", or just "5." when the name is unknown. */
 function numName(jersey, name) {
   if (!jersey) return '';
+  if (jersey === '-') return '-';   // recorded without naming the player
   return jersey + '.' + (name ? ' ' + name : '');
 }
 
@@ -200,8 +206,7 @@ function renderDetail() {
   const cat = m.category || (Teams.byName(m.team1Name) || {}).category || 'Open';
   const badge = $('#dtBadge');
   badge.textContent = m.teamType ? m.teamType + ' • ' + cat : cat;
-  badge.style.background =
-    /u14/i.test(cat) ? '#2563EB' : /u18/i.test(cat) ? '#7C3AED' : '#059669';
+  badge.style.background = CAT_COLOURS[cat.toUpperCase()] || '#059669';
 
   $('#dtTitle').textContent = `${m.team1Name} vs ${m.team2Name}`;
   $('#dtDate').textContent = (m.date || 'No Date')
