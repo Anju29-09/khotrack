@@ -6,10 +6,10 @@
 <meta name="theme-color" content="#0F172A">
 <title>KhoTrack</title>
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=28">
-<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png?v=28">
-<link rel="apple-touch-icon" href="icon-192.png?v=28">
-<link rel="stylesheet" href="styles.css?v=28">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=29">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png?v=29">
+<link rel="apple-touch-icon" href="icon-192.png?v=29">
+<link rel="stylesheet" href="styles.css?v=29">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
      bottom the way "from Meta" does. -->
 <div id="splash">
   <div class="splash-main">
-    <img src="icon-512.png?v=28" alt="" width="128" height="128">
+    <img src="icon-512.png?v=29" alt="" width="128" height="128">
     <div class="splash-name">KhoTrack</div>
     <div class="splash-tag">Kho Kho Scoring</div>
   </div>
@@ -425,8 +425,6 @@
 <dialog id="dlgUpdate">
   <h2>Update available</h2>
   <p>A newer version of KhoTrack is ready.</p>
-  <p class="muted">Updating takes a second. Your teams, matches and score sheets
-     are kept — nothing is reinstalled and nothing is lost.</p>
   <div class="actions">
     <button class="grey" id="updLater">Later</button>
     <button class="green" id="updNow">Update now</button>
@@ -441,10 +439,10 @@
 
 <div id="toast"></div>
 
-<script src="share.js?v=28"></script>
-<script src="app.js?v=28"></script>
-<script src="scoring.js?v=28"></script>
-<script src="detail.js?v=28"></script>
+<script src="share.js?v=29"></script>
+<script src="app.js?v=29"></script>
+<script src="scoring.js?v=29"></script>
+<script src="detail.js?v=29"></script>
 <script>
   // service worker gives the offline cache and makes the app installable
   /* ----------------------------------------------------------
@@ -544,7 +542,7 @@
 
   // so it is obvious at a glance whether the browser is running the newest files
   const stamp = document.getElementById('buildStamp');
-  if (stamp) stamp.textContent = ' — keys build v28';
+  if (stamp) stamp.textContent = ' — keys build v29';
 
   renderHome();
 

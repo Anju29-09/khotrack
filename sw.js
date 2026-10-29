@@ -6,12 +6,12 @@
  * only sends SKIP_WAITING when the user accepts, so a match in progress is never
  * reloaded out from under the scorer.
  */
-const CACHE = 'khotrack-v28';
+const CACHE = 'khotrack-v29';
 
 const ASSETS = [
-  './', './index.html', './styles.css?v=28',
-  './share.js?v=28', './app.js?v=28', './scoring.js?v=28', './detail.js?v=28',
-  './manifest.webmanifest', './icon-192.png?v=28', './icon-512.png?v=28', './icon-maskable.png?v=28'
+  './', './index.html', './styles.css?v=29',
+  './share.js?v=29', './app.js?v=29', './scoring.js?v=29', './detail.js?v=29',
+  './manifest.webmanifest', './icon-192.png?v=29', './icon-512.png?v=29', './icon-maskable.png?v=29'
 ];
 
 self.addEventListener('install', e => {
