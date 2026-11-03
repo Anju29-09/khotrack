@@ -154,7 +154,13 @@ const history_ = [];
 let current = 'home';
 
 function go(name, push = true) {
-  if (push && name !== current) history_.push(current);
+  if (push && name !== current) {
+    history_.push(current);
+
+    // mirror the move into the browser's own history, so a phone's back button
+    // or gesture steps back through the app instead of leaving it
+    history.pushState({ screen: name }, '');
+  }
   current = name;
   $$('.screen').forEach(s => s.classList.remove('active'));
   $('#s-' + name).classList.add('active');
@@ -162,10 +168,19 @@ function go(name, push = true) {
   if (SCREEN_ENTER[name]) SCREEN_ENTER[name]();
 }
 
+/* The on-screen Back hands over to the browser rather than moving screens itself,
+   so it and the phone's back button take exactly the same path. */
 function back() {
-  const prev = history_.pop() || 'home';
-  go(prev, false);
+  if (history_.length) history.back();
 }
+
+window.addEventListener('popstate', () => {
+  const prev = history_.pop();
+
+  // nothing left to unwind means we are on the home screen; let the back press
+  // leave the app as it normally would
+  if (prev) go(prev, false);
+});
 
 const SCREEN_ENTER = {
   home: renderHome,

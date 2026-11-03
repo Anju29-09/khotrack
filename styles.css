@@ -266,6 +266,15 @@ table.sheet td.notout { color: var(--green); }
   .deskonly { display: block; }
 }
 
+/* The on-screen Back is a laptop/PC affordance for the same reason: a phone or
+   tablet already has its own back button or gesture, which now steps through the
+   app's screens, so a second one on screen is only clutter. */
+[data-back] { display: none; }
+
+@media (hover: hover) and (pointer: fine) {
+  [data-back] { display: inline-block; }
+}
+
 .keystatus {
   margin: 10px 0 4px;
   font-weight: 700;

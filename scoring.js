@@ -415,8 +415,11 @@ const Scoring = (() => {
 
   /* ---------------- defender / wicket ---------------- */
 
+  /* Every slot picked into a batch needs a wicket, '-' included: a '-' chosen for a
+     batch stands for a player whose jersey the scorer did not catch, not an empty
+     place, so the batch must not finish while it is still standing. */
   function requiredOuts(batch) {
-    return Math.max(1, batch.filter(p => p !== '-').length);
+    return Math.max(1, batch.length);
   }
 
   function onDefender(num) {
