@@ -60,7 +60,7 @@ function squadName(m, jersey, fromTeam1) {
   let squad = fromTeam1 ? m.team1Players : m.team2Players;
 
   if (!squad) {   // saved before squads were stored - fall back to the team list
-    const t = Teams.byName(fromTeam1 ? m.team1Name : m.team2Name);
+    const t = Teams.byName(fromTeam1 ? m.team1Name : m.team2Name, m.teamType, m.category);
     squad = t && t.players;
   }
   if (!squad) return '';
@@ -203,7 +203,9 @@ function renderDetail() {
   const m = detailMatch;
   const draw = isDraw(m);
 
-  const cat = m.category || (Teams.byName(m.team1Name) || {}).category || 'Open';
+  const cat = m.category
+    || (Teams.byName(m.team1Name, m.teamType) || {}).category
+    || 'Open';
   const badge = $('#dtBadge');
   badge.textContent = m.teamType ? m.teamType + ' • ' + cat : cat;
   badge.style.background = CAT_COLOURS[cat.toUpperCase()] || '#059669';

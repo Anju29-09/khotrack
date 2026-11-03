@@ -35,12 +35,38 @@ const DB = {
   remove(key) { try { localStorage.removeItem(key); } catch (e) {} }
 };
 
+/**
+ * A team is identified by its name together with its side and age group, not by the
+ * name alone: one club fields a men's and a women's side, and one per age group, all
+ * under the same name.
+ */
+function sameTeam(a, b) {
+  return (a.teamName || '').toLowerCase() === (b.teamName || '').toLowerCase()
+      && (a.teamType || '') === (b.teamType || '')
+      && (a.category || '') === (b.category || '');
+}
+
 const Teams = {
   all: () => DB.read('teams', []),
   save: list => DB.write('teams', list),
-  byName(name) {
+
+  /**
+   * Looks a team up for matches saved before squads were stored. Names repeat, so
+   * pass the side and age group where they are known and the right one is picked.
+   */
+  byName(name, teamType, category) {
     if (!name) return null;
-    return this.all().find(t => (t.teamName || '').toLowerCase() === name.toLowerCase()) || null;
+
+    const named = this.all()
+      .filter(t => (t.teamName || '').toLowerCase() === name.toLowerCase());
+
+    if (!named.length) return null;
+
+    const exact = named.find(t =>
+      (!teamType || (t.teamType || '') === teamType) &&
+      (!category || (t.category || '') === category));
+
+    return exact || named[0];
   }
 };
 
@@ -377,23 +403,27 @@ $('#saveTeamBtn').onclick = () => {
     return;
   }
 
-  if (Teams.all().some(t => (t.teamName || '').toLowerCase() === name.toLowerCase())) {
-    toast('A team named "' + name + '" already exists', 3500);
-    return;
-  }
-
   const type = $('input[name=regType]:checked');
   if (!type) { toast('Select team type'); return; }
 
   const cat = $('input[name=regCat]:checked');
   if (!cat) { toast('Select category'); return; }
 
-  const list = Teams.all();
-  list.push({
+  const entry = {
     teamName: name, coachName: coach,
     teamType: type.value, category: cat.value,
     players
-  });
+  };
+
+  // the same name is fine for another side or age group; only an exact repeat clashes
+  if (Teams.all().some(t => sameTeam(t, entry))) {
+    toast('A ' + type.value + ' ' + cat.value + ' team named "' + name
+      + '" already exists', 4000);
+    return;
+  }
+
+  const list = Teams.all();
+  list.push(entry);
   Teams.save(list);
 
   toast('Team Saved (' + players.length + ' players)');
@@ -488,8 +518,12 @@ function teamRow(team) {
   del.className = 'red';
   del.textContent = '🗑';
   del.onclick = async () => {
-    if (await ask('Delete Team', 'Delete ' + team.teamName + '?', { yes: 'Delete' }) !== 'yes') return;
-    Teams.save(Teams.all().filter(t => t.teamName !== team.teamName));
+    if (await ask('Delete Team',
+      `Delete ${team.teamName} (${team.teamType} ${team.category})?`,
+      { yes: 'Delete' }) !== 'yes') return;
+
+    // match on the whole identity: a side sharing this name must not go with it
+    Teams.save(Teams.all().filter(t => !sameTeam(t, team)));
     toast('Team Deleted');
     renderTeams();
   };
