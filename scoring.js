@@ -76,6 +76,7 @@ const Scoring = (() => {
     // defensive defaults for drafts written by an older build
     M.undoStack = M.undoStack || [];
     M.batchStart = M.batchStart || [];
+    M.pendingBatchStart = null;
     M.batchBonus = M.batchBonus || [];
     M.halfBonus = M.halfBonus || [];
     M.wicketPoints = M.wicketPoints || 1;
@@ -466,7 +467,12 @@ const Scoring = (() => {
     M.batchEvents.push([]);
     M.batchTimes.push([]);
     M.batchTypes.push([]);
-    M.batchStart.push(M.totalTime - M.timeLeft);   // the Dream Run clock is per batch
+    // the Dream Run clock is per batch, and runs from when the previous batch fell
+    M.batchStart.push(M.pendingBatchStart != null
+      ? M.pendingBatchStart
+      : M.totalTime - M.timeLeft);
+
+    M.pendingBatchStart = null;
     M.batchBonus.push(0);
 
     selDefenders = [];
@@ -617,9 +623,15 @@ const Scoring = (() => {
         toast('Next Batch');
       }
 
-      // the batch now on the field starts its own Dream Run clock
+      // The batch now on the field starts its own Dream Run clock from the moment
+      // the last one fell, not from whenever the scorer finishes tapping in the
+      // next three: the clock keeps running while they do that.
+      const fellAt = M.totalTime - M.timeLeft;
+
       if (M.currentBatchIndex < M.batchStart.length) {
-        M.batchStart[M.currentBatchIndex] = M.totalTime - M.timeLeft;
+        M.batchStart[M.currentBatchIndex] = fellAt;
+      } else {
+        M.pendingBatchStart = fellAt;   // picked up by addBatch
       }
 
       renderPlayers();
@@ -752,7 +764,7 @@ const Scoring = (() => {
 
   function resetInning() {
     M.batches = []; M.batchEvents = []; M.batchTimes = []; M.batchTypes = [];
-    M.batchStart = []; M.batchBonus = [];
+    M.batchStart = []; M.batchBonus = []; M.pendingBatchStart = null;
     M.undoStack = [];
     M.currentBatchIndex = 0;
     M.cycleCount = 1;
