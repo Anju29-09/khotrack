@@ -234,7 +234,13 @@ const SCREEN_ENTER = {
 
 document.addEventListener('click', e => {
   const goBtn = e.target.closest('[data-go]');
-  if (goBtn) { go(goBtn.dataset.go); return; }
+  if (goBtn) {
+    // reaching registration from the menu is always a new team, never the one
+    // that happened to be open in the editor
+    if (goBtn.dataset.go === 'register' && editingTeam) regClear();
+    go(goBtn.dataset.go);
+    return;
+  }
   if (e.target.closest('[data-back]')) back();
 });
 
@@ -324,6 +330,9 @@ function regClear() {
   $$('input[name=regType]').forEach(r => r.checked = false);
   $$('input[name=regCat]').forEach(r => r.checked = false);
   for (let i = 1; i <= TeamShare.MAX_PLAYERS; i++) $('#p' + i).value = '';
+
+  editingTeam = null;
+  setRegMode();
 }
 
 function regFill(parsed) {
@@ -415,14 +424,38 @@ $('#saveTeamBtn').onclick = () => {
     players
   };
 
-  // the same name is fine for another side or age group; only an exact repeat clashes
-  if (Teams.all().some(t => sameTeam(t, entry))) {
+  const list = Teams.all();
+
+  // the same name is fine for another side or age group; only an exact repeat
+  // clashes, and a team being edited never clashes with itself
+  const clash = list.some(t =>
+    sameTeam(t, entry) && !(editingTeam && sameTeam(t, editingTeam)));
+
+  if (clash) {
     toast('A ' + type.value + ' ' + cat.value + ' team named "' + name
       + '" already exists', 4000);
     return;
   }
 
-  const list = Teams.all();
+  if (editingTeam) {
+    const i = list.findIndex(t => sameTeam(t, editingTeam));
+
+    if (i === -1) { toast('That team is no longer registered', 3500); return; }
+
+    list[i] = entry;
+    Teams.save(list);
+
+    toast('Team Updated (' + players.length + ' players)');
+    regClear();
+
+    // back to the list with the form and the detail screen dropped from the way
+    // back, so a back press goes home rather than reopening the edit form
+    history_.length = 0;
+    current = 'home';
+    go('teams');
+    return;
+  }
+
   list.push(entry);
   Teams.save(list);
 
@@ -434,6 +467,10 @@ $('#saveTeamBtn').onclick = () => {
 /* ============================================================
    REGISTERED TEAMS
    ============================================================ */
+
+/* Which category sections are expanded, keyed "Men|U14". Collapsed to start with:
+   five age groups on each side is mostly headings otherwise. */
+const openCats = new Set();
 
 function renderTeams() {
   const q = $('#teamSearch').value.trim().toLowerCase();
@@ -462,23 +499,41 @@ function renderTeams() {
         const list = sideTeams.filter(t => (t.category || 'Open') === cat).filter(match);
         if (q && !list.length) return; // hide empty sections while searching
 
+        const key = type + '|' + cat;
+
+        // a search has to show what it found, so matches open regardless
+        const open = q ? true : openCats.has(key);
+
         const h = document.createElement('h3');
-        h.textContent = cat;
+        h.className = 'cathead';
         h.style.color = colour;
+        h.innerHTML = `<span class="arrow">${open ? '▾' : '▸'}</span>`
+                    + `<span class="catname">${cat}</span>`
+                    + `<span class="catcount">${list.length}</span>`;
+
+        h.onclick = () => {
+          if (openCats.has(key)) openCats.delete(key); else openCats.add(key);
+          renderTeams();
+        };
+
         card.appendChild(h);
+
+        const body = document.createElement('div');
+        body.hidden = !open;
 
         if (!list.length) {
           const e = document.createElement('div');
           e.className = 'empty';
           e.textContent = 'None';
-          card.appendChild(e);
-          return;
+          body.appendChild(e);
+        } else {
+          list.forEach(t => {
+            sideShown++;
+            body.appendChild(teamRow(t));
+          });
         }
 
-        list.forEach(t => {
-          sideShown++;
-          card.appendChild(teamRow(t));
-        });
+        card.appendChild(body);
       });
 
       if (q && !sideShown) return; // hide the whole side when nothing matches
@@ -541,7 +596,49 @@ function showTeamDetail(team) {
   $('#tdPlayers').innerHTML = team.players
     .map((p, i) => `<div class="listrow"><div class="grow">🔹 ${i + 1}. ${esc(p)}</div></div>`)
     .join('');
+
+  $('#tdEditBtn').onclick = () => editTeam(team);
+
   go('teamdetail');
+}
+
+/* ============================================================
+   EDITING A REGISTERED TEAM
+
+   The registration screen is reused rather than duplicated: it already has the
+   player boxes, the Enter-to-next behaviour and every check. editingTeam holds
+   the team as it was, so the save knows to replace it instead of adding one.
+   ============================================================ */
+
+let editingTeam = null;
+
+function editTeam(team) {
+  editingTeam = team;
+
+  $('#regTeam').value = team.teamName;
+  $('#regCoach').value = team.coachName;
+
+  for (let i = 1; i <= TeamShare.MAX_PLAYERS; i++) {
+    $('#p' + i).value = team.players[i - 1] || '';
+  }
+
+  const type = document.querySelector(`input[name=regType][value="${team.teamType}"]`);
+  if (type) type.checked = true;
+
+  const cat = document.querySelector(`input[name=regCat][value="${team.category}"]`);
+  if (cat) cat.checked = true;
+
+  setRegMode();
+  go('register');
+}
+
+/** Puts the registration screen into add or edit wording. */
+function setRegMode() {
+  $('#regTitle').textContent = editingTeam ? '✏️ Edit Team' : '🏃 Team Registration';
+  $('#saveTeamBtn').textContent = editingTeam ? 'UPDATE TEAM' : 'SAVE TEAM';
+
+  // importing a WhatsApp reply over a team being edited would be confusing
+  $('#regInviteRow').style.display = editingTeam ? 'none' : '';
 }
 
 /* ============================================================
