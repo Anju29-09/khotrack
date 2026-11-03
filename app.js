@@ -153,8 +153,14 @@ function esc(s) {
 const history_ = [];
 let current = 'home';
 
-function go(name, push = true) {
-  if (push && name !== current) {
+function go(name, push = true, reset = false) {
+  if (reset) {
+    // leaving for good: the screen behind must not be reachable again, or a back
+    // press would land on a match that is no longer being scored
+    history_.length = 0;
+    history.replaceState({ screen: name }, '');
+
+  } else if (push && name !== current) {
     history_.push(current);
 
     // mirror the move into the browser's own history, so a phone's back button
@@ -175,7 +181,19 @@ function back() {
 }
 
 window.addEventListener('popstate', () => {
-  const prev = history_.pop();
+
+  // a live match must not be dropped by an accidental back press, so put the
+  // entry the browser just removed back and let confirmExit decide
+  if (current === 'scoring' && Scoring.isLive()) {
+    history.pushState({ screen: 'scoring' }, '');
+    Scoring.confirmExit();
+    return;
+  }
+
+  let prev = history_.pop();
+
+  // never step back into the scoring screen once the match behind it has gone
+  while (prev === 'scoring' && !Scoring.isLive()) prev = history_.pop();
 
   // nothing left to unwind means we are on the home screen; let the back press
   // leave the app as it normally would

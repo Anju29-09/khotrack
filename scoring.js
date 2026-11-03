@@ -957,7 +957,9 @@ const Scoring = (() => {
 
     clearInterval(timer); timer = null; running = false; releaseWake();
     M = null;
-    go('home');
+
+    // reset: the match is over for this screen, so back must not return to it
+    go('home', false, true);
   }
 
   /* ---------------- wiring ---------------- */
@@ -1213,5 +1215,8 @@ const Scoring = (() => {
 
   window.addEventListener('beforeunload', () => { if (M) saveDraft(); });
 
-  return { start, resume };
+  /** True while a match is being scored, so navigation can guard the way out. */
+  function isLive() { return M !== null; }
+
+  return { start, resume, isLive, confirmExit };
 })();
