@@ -10,7 +10,7 @@ const CACHE = 'khotrack-v29';
 
 const ASSETS = [
   './', './index.html', './styles.css?v=29',
-  './share.js?v=29', './app.js?v=29', './scoring.js?v=29', './detail.js?v=29',
+  './share.js?v=29', './app.js?v=29', './scoring.js?v=29', './detail.js?v=29', './pdf.js?v=29',
   './manifest.webmanifest', './icon-192.png?v=29', './icon-512.png?v=29', './icon-maskable.png?v=29'
 ];
 

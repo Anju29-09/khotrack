@@ -549,8 +549,9 @@ function buildCsv(m) {
   return s;
 }
 
-function download(filename, text, mime) {
-  const blob = new Blob([text], { type: mime });
+/** `body` may be text or an already-built Blob. */
+function download(filename, body, mime) {
+  const blob = body instanceof Blob ? body : new Blob([body], { type: mime });
   const url = URL.createObjectURL(blob);
 
   const a = document.createElement('a');
@@ -563,28 +564,131 @@ function download(filename, text, mime) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-$('#printBtn').onclick = () => window.print();
+/* ============================================================
+   PDF
+
+   Printing, downloading and sharing all hand out the same document, so what a
+   referee prints is exactly what lands in somebody's WhatsApp.
+   ============================================================ */
+
+const M_LEFT = Pdf.MARGIN;
+const PAGE_W = Pdf.PAGE.w - Pdf.MARGIN * 2;
+
+/** Lays the score sheet out as a PDF and returns it as a Blob. */
+function buildSheetPdf(m) {
+  const d = Pdf.doc();
+
+  d.text(`${m.team1Name} vs ${m.team2Name}`, { size: 17, bold: true, gapAfter: 1 });
+
+  const cat = m.category || 'Open';
+  d.text([m.date || '', m.teamType ? `${m.teamType} ${cat}` : cat,
+    m.minutesPerHalf ? `${m.minutesPerHalf} min halves` : '']
+    .filter(Boolean).join('   -   '), { size: 9, gapAfter: 6 });
+
+  d.text(`${m.team1Name} ${m.team1Score}   -   ${m.team2Score} ${m.team2Name}`,
+    { size: 13, bold: true, gapAfter: 2 });
+
+  d.text(isDraw(m) ? 'Match Draw' : `Winner: ${m.winner}`, { size: 11, bold: true });
+  d.text(rulesLine(m), { size: 8 });
+  d.rule();
+
+  // ---- ball by ball, split by half ----
+  const COLS = [
+    ['Batch', M_LEFT, 60],
+    ['Wicket', M_LEFT + 65, 250],
+    ['Time', M_LEFT + 325, 80],
+    ['Type', M_LEFT + 410, PAGE_W - 410]
+  ];
+
+  const rows = sheetRows(m);
+  let half = null;
+
+  rows.forEach(r => {
+    if (r.half !== half) {
+      half = r.half;
+      d.gap(6);
+      d.text(sectionLabel(m, r.halfIndex), { size: 10, bold: true, gapAfter: 2 });
+      d.row(COLS.map(c => [c[0], c[1], c[2]]), { size: 8, bold: true });
+      d.rule();
+    }
+
+    d.row([
+      [r.firstOfBatch ? r.batch : '', COLS[0][1], COLS[0][2]],
+      [r.label, COLS[1][1], COLS[1][2]],
+      [r.time, COLS[2][1], COLS[2][2]],
+      [r.type, COLS[3][1], COLS[3][2]]
+    ]);
+  });
+
+  if (!rows.length) d.text('No ball-by-ball data recorded', { size: 9 });
+
+  // ---- wickets taken, whole match ----
+  d.gap(10);
+  d.rule();
+  d.text('Wickets Taken - Match Total', { size: 11, bold: true, gapAfter: 3 });
+
+  const totals = matchSummary(m, rows);
+
+  if (!totals.length) {
+    d.text('None', { size: 9 });
+  } else {
+    totals.forEach(t => {
+      d.text(t.name, { size: 9, bold: true, gapAfter: 0 });
+      d.text(pairsText(t.pairs), { size: 9, x: M_LEFT + 12, gapAfter: 4 });
+    });
+  }
+
+  return d.build();
+}
+
+/** The sheet as a File, ready to share or save. */
+function sheetPdfFile(m) {
+  return new File([buildSheetPdf(m)], exportName(m, 'pdf'), { type: 'application/pdf' });
+}
+
+$('#printBtn').onclick = () => {
+  if (!detailMatch) return;
+
+  // print the PDF itself rather than the page, so the paper copy matches the
+  // file people are sent
+  const url = URL.createObjectURL(buildSheetPdf(detailMatch));
+  const w = window.open(url, '_blank');
+
+  if (!w) {
+    // a blocked popup should still leave the referee able to print
+    toast('Allow pop-ups to print, or use Download PDF', 4000);
+    URL.revokeObjectURL(url);
+    return;
+  }
+
+  w.addEventListener('load', () => { try { w.print(); } catch (e) { /* viewer prints */ } });
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+};
+
+$('#pdfBtn').onclick = () => {
+  if (!detailMatch) return;
+  download(exportName(detailMatch, 'pdf'), buildSheetPdf(detailMatch), 'application/pdf');
+  toast('PDF downloaded');
+};
+
+$('#shareBtn').onclick = async () => {
+  if (!detailMatch) return;
+
+  const file = sheetPdfFile(detailMatch);
+  const title = `${detailMatch.team1Name} vs ${detailMatch.team2Name}`;
+
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ title, files: [file] }); return; }
+    catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+
+  // no file sharing here - hand over the PDF itself rather than a text copy
+  download(file.name, file, 'application/pdf');
+  toast('PDF downloaded - attach it to share', 4000);
+};
 
 $('#csvBtn').onclick = () => {
   if (!detailMatch) return;
   download(exportName(detailMatch, 'csv'), buildCsv(detailMatch), 'text/csv;charset=utf-8');
   toast('CSV downloaded');
-};
-
-$('#shareBtn').onclick = async () => {
-  if (!detailMatch) return;
-  const text = sheetText(detailMatch);
-  const title = `${detailMatch.team1Name} vs ${detailMatch.team2Name}`;
-
-  if (navigator.share) {
-    try { await navigator.share({ title, text }); return; }
-    catch (e) { if (e && e.name === 'AbortError') return; }
-  }
-
-  try {
-    await navigator.clipboard.writeText(text);
-    toast('Scoresheet copied to clipboard');
-  } catch (e) {
-    toast('Sharing is not available in this browser');
-  }
 };
