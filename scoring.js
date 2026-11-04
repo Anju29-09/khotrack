@@ -80,6 +80,11 @@ const Scoring = (() => {
     M.batchBonus = M.batchBonus || [];
     M.halfBonus = M.halfBonus || [];
     M.halfBatchBonus = M.halfBatchBonus || [];
+
+    // A match that was already under way when the per-batch figures were added has
+    // the half totals but not the split. Pad so the two arrays stay index-aligned,
+    // or a later half's batches would be shown against an earlier half.
+    while (M.halfBatchBonus.length < M.halfBonus.length) M.halfBatchBonus.push([]);
     M.wicketPoints = M.wicketPoints || 1;
     M.dreamRunMs = M.dreamRunMs || 0;
     M.bonusIntervalMs = M.bonusIntervalMs || 30000;
