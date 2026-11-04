@@ -501,55 +501,6 @@ function sheetText(m) {
   return s;
 }
 
-function csvCell(v) {
-  const s = v == null ? '' : String(v);
-  return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
-}
-
-function buildCsv(m) {
-  let s = '';
-  s += `Match,${csvCell(m.team1Name + ' vs ' + m.team2Name)}\n`;
-  s += `Date,${csvCell(m.date)}\n`;
-  s += `Result,${csvCell(isDraw(m) ? 'Draw' : m.winner)}\n`;
-  s += `${csvCell(m.team1Name)},${m.team1Score}\n`;
-  s += `${csvCell(m.team2Name)},${m.team2Score}\n`;
-  s += `Rules,${csvCell(rulesLine(m))}\n\n`;
-
-  if (m.dreamRunMinutes) {
-    s += 'Half,Dream Run Bonus,Awarded To,By Batch\n';
-    (m.allEvents || []).forEach((_, h) => {
-      const defending = wasTeam1Attacking(m, h) ? m.team2Name : m.team1Name;
-      s += `${csvCell(halfTitle(m, h))},${halfBonusOf(m, h)},${csvCell(defending)},`
-         + `${csvCell(dreamRunByBatch(m, h))}\n`;
-    });
-    s += '\n';
-  }
-
-  s += 'Half,Batch,Defender No,Defender Name,Attacker No,Attacker Name,'
-     + 'Time,Type,Result\n';
-
-  sheetRows(m).forEach(r => {
-    s += [r.half, r.batch, r.defNo, r.defName, r.attNo, r.attName,
-          r.time, r.type, r.notOut ? 'Not Out' : 'Out'].map(csvCell).join(',') + '\n';
-  });
-
-  s += '\nWickets Taken In Match\n';
-  s += 'Team,Jersey,Player,Wickets\n';
-
-  matchSummary(m, sheetRows(m)).forEach(t => {
-    if (!t.pairs.length) {
-      s += [t.name, '', '', 0].map(csvCell).join(',') + '\n';
-      return;
-    }
-    t.pairs.forEach(p => {
-      s += [t.name, p.jersey, p.player, p.count].map(csvCell).join(',') + '\n';
-    });
-  });
-
-  return s;
-}
-
-/** `body` may be text or an already-built Blob. */
 function download(filename, body, mime) {
   const blob = body instanceof Blob ? body : new Blob([body], { type: mime });
   const url = URL.createObjectURL(blob);
@@ -685,10 +636,4 @@ $('#shareBtn').onclick = async () => {
   // no file sharing here - hand over the PDF itself rather than a text copy
   download(file.name, file, 'application/pdf');
   toast('PDF downloaded - attach it to share', 4000);
-};
-
-$('#csvBtn').onclick = () => {
-  if (!detailMatch) return;
-  download(exportName(detailMatch, 'csv'), buildCsv(detailMatch), 'text/csv;charset=utf-8');
-  toast('CSV downloaded');
 };
