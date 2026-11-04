@@ -174,11 +174,30 @@ function pairsText(pairs) {
   return pairs.map(p => numName(p.jersey, p.player) + ' - ' + p.count).join(',   ');
 }
 
+/**
+ * "Batch 1 - 2,  Batch 3 - 1" for one half, or '' when nothing was earned or the
+ * match was saved before the per-batch figures were kept.
+ */
+function dreamRunByBatch(m, i) {
+  const per = m.halfBatchBonus && m.halfBatchBonus[i];
+  if (!Array.isArray(per)) return '';
+
+  return per
+    .map((n, b) => ({ n: n || 0, b }))
+    .filter(x => x.n > 0)
+    .map(x => `Batch ${x.b + 1} - ${x.n}`)
+    .join(',   ');
+}
+
 function sectionLabel(m, i) {
   const bonus = halfBonusOf(m, i);
   if (!bonus) return halfTitle(m, i);
+
   const defending = wasTeam1Attacking(m, i) ? m.team2Name : m.team1Name;
-  return `${halfTitle(m, i)}   ⭐ Dream Run +${bonus} ${defending}`;
+  const perBatch = dreamRunByBatch(m, i);
+
+  return `${halfTitle(m, i)}   ⭐ Dream Run +${bonus} ${defending}`
+       + (perBatch ? `   (${perBatch})` : '');
 }
 
 function rulesLine(m) {
@@ -497,10 +516,11 @@ function buildCsv(m) {
   s += `Rules,${csvCell(rulesLine(m))}\n\n`;
 
   if (m.dreamRunMinutes) {
-    s += 'Half,Dream Run Bonus,Awarded To\n';
+    s += 'Half,Dream Run Bonus,Awarded To,By Batch\n';
     (m.allEvents || []).forEach((_, h) => {
       const defending = wasTeam1Attacking(m, h) ? m.team2Name : m.team1Name;
-      s += `${csvCell(halfTitle(m, h))},${halfBonusOf(m, h)},${csvCell(defending)}\n`;
+      s += `${csvCell(halfTitle(m, h))},${halfBonusOf(m, h)},${csvCell(defending)},`
+         + `${csvCell(dreamRunByBatch(m, h))}\n`;
     });
     s += '\n';
   }

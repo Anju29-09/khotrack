@@ -60,7 +60,7 @@ const Scoring = (() => {
       batchStart: [], batchBonus: [],
 
       allHalfEvents: [], allHalfTimes: [], allHalfTypes: [],
-      halfTitles: [], halfTeam1Attacking: [], halfBonus: [],
+      halfTitles: [], halfTeam1Attacking: [], halfBonus: [], halfBatchBonus: [],
 
       currentHalfArchived: false,
       undoStack: []
@@ -79,6 +79,7 @@ const Scoring = (() => {
     M.pendingBatchStart = null;
     M.batchBonus = M.batchBonus || [];
     M.halfBonus = M.halfBonus || [];
+    M.halfBatchBonus = M.halfBatchBonus || [];
     M.wicketPoints = M.wicketPoints || 1;
     M.dreamRunMs = M.dreamRunMs || 0;
     M.bonusIntervalMs = M.bonusIntervalMs || 30000;
@@ -811,6 +812,10 @@ const Scoring = (() => {
     M.halfTeam1Attacking.push(M.isTeam1Attacking);
     M.halfBonus.push(halfBonusPoints());
 
+    // the same total again, but kept per batch so the sheet can show which batch
+    // earned what rather than only the half's figure
+    M.halfBatchBonus.push(M.batchBonus.slice());
+
     M.currentHalfArchived = true;
   }
 
@@ -933,6 +938,7 @@ const Scoring = (() => {
       halfTitles: M.halfTitles,
       halfTeam1Attacking: M.halfTeam1Attacking,
       halfBonus: M.halfBonus,
+      halfBatchBonus: M.halfBatchBonus,
       team1Players: M.team1.players.slice(),
       team2Players: M.team2.players.slice(),
       category: M.team1.category,
