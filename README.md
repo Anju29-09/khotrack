@@ -29,8 +29,9 @@ Once installed it works with no internet.
 `Space` start / pause / resume · `L` lap · `U` undo · `D` delete batch ·
 `H` reset half · `S` skip · `F` finish · `Esc` clear
 
-Jersey numbers are typed directly: `2` is instant, `1` waits a moment in case you mean
-`12`, `00` means no jersey. First number is the attacker, second is the defender.
+Jersey numbers are always two digits, so nothing is waited for: `01` is jersey 1, `12`
+is jersey 12 and `00` means no jersey. The entry lands on the second digit. First
+number is the attacker, second is the defender.
 
 ## Your data stays on your device
 

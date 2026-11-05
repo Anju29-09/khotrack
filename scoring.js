@@ -1031,39 +1031,22 @@ const Scoring = (() => {
   */
 
   let keyBuf = '';
-  let keyTimer = null;
-
-  /** Highest jersey in play, so we know when a digit can still grow into a bigger one. */
-  function maxJersey() {
-    const all = M.playing1.concat(M.playing2).map(n => parseInt(n, 10) || 0);
-    return all.length ? Math.max.apply(null, all) : 0;
-  }
-
-  /** Could this partial entry still become a valid two-digit jersey? */
-  function couldGrow(buf) {
-    if (buf === '0') return true;                     // 00-09 are still possible
-    return parseInt(buf + '0', 10) <= maxJersey();    // e.g. "1" -> 10..15 exist
-  }
 
   /**
-   * Digits commit as soon as they can only mean one thing, so a squad of 15 needs
-   * a single keypress for jerseys 2-9 and no waiting at all. "1" pauses briefly in
-   * case a second digit follows (1 vs 12), and Enter always commits immediately.
+   * Every jersey is two digits, so nothing is ever guessed and nothing is ever
+   * waited for: 01 is jersey 1, 12 is jersey 12, 00 is the "-" placeholder. The
+   * entry lands the instant the second digit is pressed. Enter still commits a
+   * single digit, for anyone who types 5 and means it.
    */
   function pushDigit(d) {
-    clearTimeout(keyTimer);
     keyBuf += d;
 
-    if (keyBuf.length >= 2 || !couldGrow(keyBuf)) { commitKey(); return; }
+    if (keyBuf.length >= 2) { commitKey(); return; }
 
-    keyTimer = setTimeout(commitKey, 900);
     renderKeyStatus();
   }
 
   function commitKey() {
-    clearTimeout(keyTimer);
-    keyTimer = null;
-
     const buf = keyBuf;
     keyBuf = '';
 
@@ -1072,8 +1055,6 @@ const Scoring = (() => {
   }
 
   function clearKeyEntry() {
-    clearTimeout(keyTimer);
-    keyTimer = null;
     keyBuf = '';
   }
 
@@ -1156,7 +1137,7 @@ const Scoring = (() => {
       return;
     }
 
-    // Enter commits a half-typed jersey without waiting for the pause
+    // Enter commits a single digit, for anyone who types 5 and means it
     if (e.key === 'Enter') {
       e.preventDefault();
       commitKey();
@@ -1177,7 +1158,6 @@ const Scoring = (() => {
 
       case 'backspace':
         e.preventDefault();
-        clearTimeout(keyTimer);
         keyBuf = keyBuf.slice(0, -1);
         renderKeyStatus();
         break;
