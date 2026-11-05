@@ -1033,15 +1033,18 @@ const Scoring = (() => {
   let keyBuf = '';
 
   /**
-   * Every jersey is two digits, so nothing is ever guessed and nothing is ever
-   * waited for: 01 is jersey 1, 12 is jersey 12, 00 is the "-" placeholder. The
-   * entry lands the instant the second digit is pressed. Enter still commits a
-   * single digit, for anyone who types 5 and means it.
+   * 2 to 9 can only ever mean themselves, so they land on a single key. 0 and 1
+   * always open a two digit number - 01 to 09, and 10 to 15 - and land the instant
+   * the second digit arrives. Nothing is ever waited on: a lone 0 or 1 sits until
+   * its partner is typed, or Enter commits it as it stands.
    */
   function pushDigit(d) {
     keyBuf += d;
 
-    if (keyBuf.length >= 2) { commitKey(); return; }
+    if (keyBuf.length >= 2 || (keyBuf !== '0' && keyBuf !== '1')) {
+      commitKey();
+      return;
+    }
 
     renderKeyStatus();
   }
